@@ -1,1 +1,1 @@
-# java-practice
+# java-springboot-practice
