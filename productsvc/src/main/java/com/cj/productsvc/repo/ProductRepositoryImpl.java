@@ -125,4 +125,28 @@ public int deleteById(Long id) {
         return jdbcTemplate.update(ProductSqlQueries.DELETE_BY_ID, id);
         // you can async process with kafka topic and listener to move data from main table to archive asynchronously
     }
+    @Override
+    public int[][] saveAll(List<Product> products) {
+
+//name, brand, description, price, stock_quantity, warranty_id, created_at, updated_at, created_by, updated_by
+        return jdbcTemplate.batchUpdate(ProductSqlQueries.INSERT_PRODUCT,products,2,
+                (ps, product) -> {
+                    ps.setString(1, product.getName());
+                    ps.setString(2, product.getBrand());
+                    ps.setString(3, product.getDescription());
+                    ps.setBigDecimal(4, product.getPrice());
+                    ps.setInt(5, product.getStockQuantity());
+                    if(product.getWarrantyId() != null) {
+                        ps.setLong(6, product.getWarrantyId());
+                    } else {
+                        ps.setNull(6, java.sql.Types.BIGINT);
+                    }
+                    ps.setString(7, product.getCreatedBy());
+                    ps.setString(8, product.getUpdatedBy());
+                });
+
+
+    }
+
+
 }

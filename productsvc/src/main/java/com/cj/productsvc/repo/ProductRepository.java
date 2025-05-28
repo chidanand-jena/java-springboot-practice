@@ -14,7 +14,7 @@ public interface ProductRepository {
     Long save(Product product);
 
     Optional<Product> update(Product product);
-
+    int[][] saveAll(List<Product> products);
 
 
     int deleteById(Long id);

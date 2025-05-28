@@ -61,4 +61,7 @@ return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
         // You can customize the message or log details here
         return new ResponseEntity<>("Database error occurred: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+
+
 }

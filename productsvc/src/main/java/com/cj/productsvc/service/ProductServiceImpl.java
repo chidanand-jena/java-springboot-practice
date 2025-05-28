@@ -6,8 +6,12 @@ import com.cj.productsvc.model.Product;
 import com.cj.productsvc.repo.ProductRepositoryImpl;
 import com.cj.productsvc.repo.WarrantyRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Statement;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -74,6 +78,32 @@ Long productId = productRepo.save(product);
         int result= productRepo.deleteById(id);
          return result==1;
     }
+    @Transactional
+    @Override
+    public int saveAll(List<Product> products) {
+        System.out.println("In service saveall");
+        try {
+            int[][] batchResults = productRepo.saveAll(products);
+            return Arrays.stream(batchResults).flatMapToInt(Arrays::stream).sum();
+        } catch (DataIntegrityViolationException ex) {
+        Throwable rootCause = ex.getRootCause();
+        String dbMessage = rootCause != null ? rootCause.getMessage() : ex.getMessage();
+
+        if (dbMessage != null && dbMessage.contains("products_ibfk_1")) {
+            // Try to identify the product causing the error if possible
+            // Note: batch insert makes this tricky; you may fallback to inserting one-by-one
+            throw new DataIntegrityViolationException("Foreign key constraint violation: "+dbMessage);
+        }
+            throw ex;
+        }catch (Exception ex) {
+            // handle other unexpected exceptions if needed, or rethrow
+            throw new RuntimeException("Unexpected error during batch insert: " + ex.getMessage(), ex);
+        }
+
+
+    }
+
+
 
     private Product getProductOrThrow(Long id) {
         return productRepo.findById(id)
