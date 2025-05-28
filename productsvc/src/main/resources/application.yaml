@@ -1,0 +1,29 @@
+server:
+  port: 8085
+  servlet:
+   context-path: /api
+spring:
+  application:
+    name: productsvc
+#  datasource:
+#    url: jdbc:mysql://localhost:3306/product_db
+#    username: root
+#    password: cjdev@25
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#db config for custom bean
+productsvc:
+  datasource:
+    url: jdbc:mysql://localhost:3306/product_db
+    username: root
+    password: cjdev@25
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  hikari:
+    maximum-pool-size: 10
+    minimum-idle: 5
+    idle-timeout: 30000
+    max-lifetime: 1800000
+    connection-timeout: 30000
+    pool-name: ProductHikariCP
+    auto-commit: true
+    validation-timeout: 5000
+    leak-detection-threshold: 2000
