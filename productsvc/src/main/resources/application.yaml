@@ -11,6 +11,12 @@ spring:
 #    password: cjdev@25
 #    driver-class-name: com.mysql.cj.jdbc.Driver
 #db config for custom bean
+logging:
+  level:
+    org.springframework.jdbc.core.JdbcTemplate: DEBUG
+    org.springframework.jdbc.core.StatementCreatorUtils: TRACE
+    org.springframework.jdbc.datasource: DEBUG
+    com.zaxxer.hikari: DEBUG  # Only if you're using HikariCP
 productsvc:
   datasource:
     url: jdbc:mysql://localhost:3306/product_db

@@ -4,6 +4,7 @@ import com.cj.productsvc.model.Product;
 import com.cj.productsvc.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/products")
@@ -27,9 +29,9 @@ public class ProductController {
 
     @PostMapping("/save")
     public ResponseEntity<Product> createProduct(@Valid @RequestBody Product product){
-        System.out.println("Received product: "+product);
+       log.info("Received product: {}",product);
         Product created = productSvc.createProduct(product);
-        System.out.println("Create product: "+created);
+        log.info("Create product:{} ",created);
         return new ResponseEntity<>(created,HttpStatus.CREATED);
 
     }

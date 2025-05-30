@@ -6,6 +6,7 @@ import com.cj.productsvc.model.Product;
 import com.cj.productsvc.repo.ProductRepositoryImpl;
 import com.cj.productsvc.repo.WarrantyRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService{
@@ -68,7 +70,6 @@ Long productId = productRepo.save(product);
         return productRepo.update(product)
                 .orElseThrow(() -> new RuntimeException("Failed to update product"));
 
-
     }
 
     @Override
@@ -81,7 +82,7 @@ Long productId = productRepo.save(product);
     @Transactional
     @Override
     public int saveAll(List<Product> products) {
-        System.out.println("In service saveall");
+        log.info("In service-saveall");
         try {
             int[][] batchResults = productRepo.saveAll(products);
             return Arrays.stream(batchResults).flatMapToInt(Arrays::stream).sum();
@@ -99,8 +100,6 @@ Long productId = productRepo.save(product);
             // handle other unexpected exceptions if needed, or rethrow
             throw new RuntimeException("Unexpected error during batch insert: " + ex.getMessage(), ex);
         }
-
-
     }
 
 
