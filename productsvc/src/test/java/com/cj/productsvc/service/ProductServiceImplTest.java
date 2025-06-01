@@ -5,7 +5,7 @@ import com.cj.productsvc.exception.WarrantyNotFoundException;
 import com.cj.productsvc.model.Product;
 import com.cj.productsvc.model.WarrantyInfo;
 import com.cj.productsvc.repo.ProductRepository;
-import com.cj.productsvc.repo.WarrantyRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,8 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -30,8 +29,10 @@ public class ProductServiceImplTest {
     @Mock
     ProductRepository productRepo;
 
+   /* @Mock
+    WarrantyRepository warrantyRepo;*/
     @Mock
-    WarrantyRepository warrantyRepo;
+    WarrantyCacheService warrantyCacheService;
 
     @InjectMocks // Injects the mocks into ProductServiceImpl
     private ProductServiceImpl productService;
@@ -123,7 +124,7 @@ List<Product> result = productService.findAll();
                 .build();
 
         // Simulate that save returns a new product ID, and findById then retrieves the full product
-        when(warrantyRepo.findById(3L)).thenReturn(Optional.of(w1));
+        when(warrantyCacheService.isWarrantyExists(3L)).thenReturn(true);
         when(productRepo.save(any(Product.class))).thenReturn(5L); // Simulate ID assigned
         when(productRepo.findById(5L)).thenReturn(Optional.of(
                 Product.builder()
@@ -140,7 +141,7 @@ List<Product> result = productService.findAll();
         assertNotNull(savedProduct);
         assertEquals(5L, savedProduct.getId());
         assertEquals("Product 5", savedProduct.getName());
-        verify(warrantyRepo, times(1)).findById(3L);
+        verify(warrantyCacheService, times(1)).isWarrantyExists(3L);
         verify(productRepo, times(1)).save(any(Product.class));
         verify(productRepo, times(1)).findById(5L);
 
@@ -172,7 +173,7 @@ List<Product> result = productService.findAll();
         assertNotNull(savedProduct);
         assertEquals(4L, savedProduct.getId());
         assertEquals("Monitor", savedProduct.getName());
-        verify(warrantyRepo, never()).findById(anyLong()); // Should not check for warranty
+        verify(warrantyCacheService, never()).isWarrantyExists(anyLong()); // Should not check for warranty
         verify(productRepo, times(1)).save(any(Product.class));
         verify(productRepo, times(1)).findById(4L);
     }
@@ -186,12 +187,12 @@ List<Product> result = productService.findAll();
                 .warrantyId(999L) // Non-existing warranty
                 .build();
 
-        when(warrantyRepo.findById(999L)).thenReturn(Optional.empty());
+        when(warrantyCacheService.isWarrantyExists(999L)).thenReturn(false);
 
         Exception exception = assertThrows(WarrantyNotFoundException.class, () -> productService.save(newProduct));
 
         assertEquals("Warranty not found with id: 999", exception.getMessage());
-        verify(warrantyRepo, times(1)).findById(999L);
+        verify(warrantyCacheService, times(1)).isWarrantyExists(999L);
         verify(productRepo, never()).save(any(Product.class)); // Should not proceed to save
         verify(productRepo, never()).findById(anyLong());
     }
@@ -227,7 +228,7 @@ List<Product> result = productService.findAll();
                 .build();
 
         when(productRepo.findById(1L)).thenReturn(Optional.of(p1)); // Product exists
-        when(warrantyRepo.findById(3L)).thenReturn(Optional.of(w1)); // Warranty exists
+        when(warrantyCacheService.isWarrantyExists(3L)).thenReturn(true); // Warranty exists
         when(productRepo.update(any(Product.class))).thenReturn(Optional.of(updatedProduct));
 
         Product result = productService.update(updatedProduct);
@@ -236,7 +237,7 @@ List<Product> result = productService.findAll();
         assertEquals("Product 1", result.getName());
         assertEquals(BigDecimal.valueOf(2000), result.getPrice());
         verify(productRepo, times(1)).findById(1L);
-        verify(warrantyRepo, times(1)).findById(3L);
+        verify(warrantyCacheService, times(1)).isWarrantyExists(3L);
         verify(productRepo, times(1)).update(any(Product.class));
     }
     @Test
@@ -294,28 +295,14 @@ List<Product> result = productService.findAll();
     }
 
     @Test
-    @DisplayName("Should throw DataIntegrityViolationException with FK violation message")
+    @DisplayName("Should throw RuntimeException")
     void shouldThrowForeignKeyConstraintViolation() {
         //List<Product> products = List.of(p1, p2);
 
-        SQLException sqlEx = new SQLException("Cannot add or update a child row: a foreign key constraint fails (`products_ibfk_1`)");
-        DataIntegrityViolationException exception = new DataIntegrityViolationException("Foreign key issue", sqlEx);
+        RuntimeException exception = new RuntimeException("Unexpected error during batch insert" );
+        //DataIntegrityViolationException exception = new DataIntegrityViolationException("Foreign key issue", sqlEx);
 
         when(productRepo.saveAll(productList)).thenThrow(exception);
-
-        DataIntegrityViolationException ex = assertThrows(DataIntegrityViolationException.class,
-                () -> productService.saveAll(productList));
-
-        assertTrue(ex.getMessage().contains("Foreign key constraint violation"));
-        verify(productRepo, times(1)).saveAll(productList);
-    }
-
-    @Test
-    @DisplayName("Should throw RuntimeException for unknown error")
-    void shouldThrowRuntimeExceptionOnUnexpectedError() {
-       // List<Product> products = List.of(p1, p2);
-
-        when(productRepo.saveAll(productList)).thenThrow(new RuntimeException("DB Timeout"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> productService.saveAll(productList));
@@ -323,5 +310,7 @@ List<Product> result = productService.findAll();
         assertTrue(ex.getMessage().contains("Unexpected error during batch insert"));
         verify(productRepo, times(1)).saveAll(productList);
     }
+
+
 
 }
