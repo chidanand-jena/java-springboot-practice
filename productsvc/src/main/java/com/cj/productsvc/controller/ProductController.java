@@ -5,24 +5,20 @@ import com.cj.productsvc.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/products")
+@RequestMapping("/api/products")
 public class ProductController {
 
     private final ProductService productSvc;
@@ -30,7 +26,7 @@ public class ProductController {
     @PostMapping("/save")
     public ResponseEntity<Product> createProduct(@Valid @RequestBody Product product){
        log.info("Received product: {}",product);
-        Product created = productSvc.createProduct(product);
+        Product created = productSvc.save(product);
         log.info("Create product:{} ",created);
         return new ResponseEntity<>(created,HttpStatus.CREATED);
 
@@ -38,23 +34,22 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id){
-        return new ResponseEntity<>(productSvc.getProductById(id),HttpStatus.OK);
+        return new ResponseEntity<>(productSvc.findById(id),HttpStatus.OK);
     }
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts(){
-        return new ResponseEntity<>(productSvc.getAllProducts(),HttpStatus.OK);
+        return new ResponseEntity<>(productSvc.findAll(),HttpStatus.OK);
     }
 
     @PutMapping("/update")
     public ResponseEntity<Product> updateProduct(@Valid @RequestBody Product product){
-        return new ResponseEntity<>(productSvc.updateProduct(product),HttpStatus.OK);
+        return new ResponseEntity<>(productSvc.update(product),HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-        boolean isDeleted = productSvc.deleteProduct(id);
-        return isDeleted ? new ResponseEntity<>(HttpStatus.OK)
-                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        productSvc.delete(id);
+        return  new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/saveall")

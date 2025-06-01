@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -35,5 +36,14 @@ public class WarrantyRepository {
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
+    }
+     public List<Long> findAllIds() {
+            return jdbcTemplate.queryForList(WarrantySqlQueries.FIND_ALL_IDS, Long.class);
+        }
+
+
+    public boolean existsById(Long id) {
+        Integer count = jdbcTemplate.queryForObject(WarrantySqlQueries.EXISTS_BY_ID, Integer.class, id);
+        return count != null && count ==1;
     }
 }

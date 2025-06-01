@@ -7,4 +7,7 @@ public class WarrantySqlQueries {
     """;
     public static final String FIND_BY_ID =
             "SELECT * FROM product_db.warranty_info WHERE id = ?";
+
+    public static final String EXISTS_BY_ID = "SELECT COUNT(1) FROM warranty_info WHERE id = ?";
+public static final String FIND_ALL_IDS="SELECT id FROM warranty_info";
 }

@@ -30,10 +30,11 @@ public class Product {
     @NotNull(message = "Price is mandatory")
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than zero")
     private BigDecimal price;
-
+    @NotNull(message = "Stock Quantity is mandatory")
     @Min(value = 0, message = "Stock quantity must be non-negative")
     private int stockQuantity;
 
+    @Min(value = 1, message = "warrantyId must be greater than or equal to 1 if provided")
     private Long warrantyId;
 
     private LocalDateTime createdAt;
