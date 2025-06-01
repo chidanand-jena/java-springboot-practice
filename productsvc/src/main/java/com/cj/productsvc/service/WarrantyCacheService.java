@@ -6,6 +6,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -47,13 +48,18 @@ public class WarrantyCacheService {
 
     @PostConstruct
     public void preloadWarrantyIdsToCache() {
+        refreshWarrantyCache();
+    }
+    @Scheduled(fixedRate = 5 * 60 * 1000) // Every 60 minutes
+    public void refreshWarrantyCache() {
+        log.info("refreshWarrantyCache started");
         redisTemplate.delete(WARRANTY_SET_KEY);
         List<Long> ids = warrantyRepository.findAllIds();
         List<String> stringIds = ids.stream()
                 .map(String::valueOf)
                 .toList();
         redisTemplate.opsForSet().add(WARRANTY_SET_KEY, stringIds.toArray());
-        log.info("preloadWarrantyIdsToCache completed: WARRANTY_SET_KEY :{} ", redisTemplate.opsForSet().members(WARRANTY_SET_KEY));
+        log.info("refreshWarrantyCache completed: WARRANTY_SET_KEY :{} ", redisTemplate.opsForSet().members(WARRANTY_SET_KEY));
     }
 
 }
